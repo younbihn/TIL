@@ -5,3 +5,6 @@
 - activate의 실체 = 현재 터미널의 PATH 맨 앞에 venv/bin을 끼워넣기 → 그때부터 python, pip이 방 안 것으로 실행됨
 - activate는 전역 명령이 아니라 venv 폴더 안의 스크립트 → 그래서 `source + 경로`로 실행
 - venv 폴더는 git에 절대 안 올림(.gitignore). 소모품이라 지우고 다시 만들어도 됨
+
+- requirements.txt = 이 방의 부품 목록. `pip freeze > requirements.txt`로 생성
+- venv 폴더는 안 올리고 이 파일은 올린다 → 남이 `pip install -r requirements.txt`로 같은 환경 재현
