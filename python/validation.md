@@ -1,0 +1,4 @@
+- EmailStr = 이메일 형식 자동 검증, pydantic[email] 별도 설치 필요
+- Field(min_length=8) = 필드 단위 제약, 위반 시 422 자동 응답
+- 상태코드: 201 생성, 409 중복, 422 검증실패
+- 에러는 raise HTTPException(status_code, detail)
