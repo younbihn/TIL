@@ -3,3 +3,5 @@
 - bcrypt는 의도적으로 느림(cost factor) → 무차별 대입 방어
 - bcrypt는 bytes를 다룸: encode()로 넣고 decode()로 저장
 - DB에는 hashed_password만, 평문은 어디에도 남기지 않는다
+- 해시도 로그에 남기면 안 됨 → 로그 유출 시 오프라인 대입 공격 가능(bcrypt는 시간만 벌어줌)
+- 로그에는 값이 아니라 사건을 남긴다. 개인정보는 마스킹, 디버깅 print는 커밋 전 제거
