@@ -42,7 +42,7 @@ ss -tlnp | grep 3306   → 0.0.0.0:3306 (mysqld), *:33060 (mysqld)
 **미확인 / 후속**
 - 2회차 실행 `changed=0` 여부: 확인 전, 후속 확인 예정. 앱 계정 태스크가 매번 changed 라면 `update_password: on_create` 검토
 - `*:33060` (X Protocol)도 모든 인터페이스에서 열려 있다. 방화벽이 막고 있으나 쓰지 않는 포트이므로 닫을지 검토한다 (`mysqlx=OFF` 또는 `mysqlx-bind-address`)
-- app01 → db01:3306 연결 성공은 다음 단계(앱 계층 연결)에서 확인한다
+- 앱 계층 연결 확인 (2026-11-11 23:52 가입 요청 201): db01 에서 `SELECT email, LEFT(hashed_password, 7) AS hash_head, created_at FROM users;` → `test@example.com`, `$2b$12$`(bcrypt 비용 12), created_at 2026-11-11 23:52:00. 해시는 앞 7글자만 조회해 원문이나 전체 해시를 출력에 남기지 않는다
 - `community.mysql` 모듈 폐기 예정 경고: `ansible.mysql` 로 이관 (제출 이후)
 
 **참조**
