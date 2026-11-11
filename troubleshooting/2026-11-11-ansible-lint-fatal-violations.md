@@ -1,6 +1,6 @@
 ## CI 도입 전 로컬 lint 에서 ansible-lint 5건 실패, 수정 중 YAML 문법 오류
 
-**상태**: 원인 분석 완료. 수정 후 「로컬 통과」 재확인은 미확인. 2번 증상의 원인은 해당 파일을 직접 보지 않고 에러 메시지로 추정한 것.
+**상태**: 해결. 들여쓰기 오류(YAML 문법 오류)는 c2754a6 에서 고쳐졌고 CI(`플레이북 검증`)가 통과했다. 같은 수정 과정에서 생긴 `when` 자리표시 문자열 문제는 별도 노트(2026-11-11-when-placeholder-left-in-playbook.md). 2번 증상의 원인은 해당 파일을 직접 보지 않고 에러 메시지로 추정한 것.
 
 **증상 1**
 [맥] $ ~/.venvs/lint/bin/yamllint . && ~/.venvs/lint/bin/ansible-lint && echo "로컬 통과"
