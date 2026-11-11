@@ -40,7 +40,7 @@ ss -tlnp | grep 3306   → 0.0.0.0:3306 (mysqld), *:33060 (mysqld)
 - `bind-address = 0.0.0.0` 은 모든 인터페이스에서 받는다는 뜻이라 첫 번째 방어(방화벽)에 의존한다. 그래서 방화벽을 먼저 적용해 두는 순서가 중요하다
 
 **미확인 / 후속**
-- 2회차 실행 `changed=0` 여부: 확인 전, 후속 확인 예정. 앱 계정 태스크가 매번 changed 라면 `update_password: on_create` 검토
+- 2회차 실행 확인 (2026-11-12 00:22 무렵): `deploy-db.yml` 은 db01 ok=8 changed=0 skipped=1 (users 테이블이 이미 있어 생성 태스크를 건너뜀). 앱 계정 태스크도 매번 changed 로 나오지 않아 `update_password: on_create` 는 필요하지 않았다
 - `*:33060` (X Protocol)도 모든 인터페이스에서 열려 있다. 방화벽이 막고 있으나 쓰지 않는 포트이므로 닫을지 검토한다 (`mysqlx=OFF` 또는 `mysqlx-bind-address`)
 - 앱 계층 연결 확인 (2026-11-11 23:52 가입 요청 201): db01 에서 `SELECT email, LEFT(hashed_password, 7) AS hash_head, created_at FROM users;` → `test@example.com`, `$2b$12$`(bcrypt 비용 12), created_at 2026-11-11 23:52:00. 해시는 앞 7글자만 조회해 원문이나 전체 해시를 출력에 남기지 않는다
 - `community.mysql` 모듈 폐기 예정 경고: `ansible.mysql` 로 이관 (제출 이후)
