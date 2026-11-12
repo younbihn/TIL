@@ -99,14 +99,16 @@ timeout check 3s
 default-server inter {{ lb_check_inter }} fall {{ lb_fall }} rise {{ lb_rise }}
 balance {{ lb_balance }}
 ```
-(`timeout client/server 30s`, `http-request 10s`, `http-keep-alive 10s` 도 설정됨. `lb_*` 변수의 실제 값은 `inventory/group_vars/loadbalancers.yml` 에서 확인 필요)
+(`timeout client/server 30s`, `http-request 10s`, `http-keep-alive 10s` 도 설정됨)
+
+적용 변수 (`inventory/group_vars/loadbalancers.yml`): `lb_balance: roundrobin`, `lb_check_inter: 2s`, `lb_fall: 3`, `lb_rise: 2`, `lb_health_path: /health`, `lb_maxconn: 4000`. HAProxy 버전은 `2.8.14` (`haproxy -v`, lb01). 문서의 설계값(inter 2s / fall 3 / rise 2)과 적용값이 같다.
 
 ## 설정으로 설명되는 것
 - **시나리오 2의 3.01초**: `timeout connect 3s` 와 일치한다. 응답 없는 lab01 로 연결을 시도하다 3초에 타임아웃이 나고, `retries 3` 와 `option redispatch` 로 재시도가 lab02 로 가서 곧바로 성공한 모양이다.
 - **시나리오 1의 실패 0건**: 연결 거부는 즉시 돌아오므로 같은 재시도 경로로 lab02 에 갔다. 응답이 지연 없이(최대 39 ms) 끝난 것과 맞는다.
-- **DOWN 로그의 `check duration: 2006ms`**: HAProxy 문서 기준으로 헬스체크의 연결 대기 시간은 `min(timeout connect, inter)` 로 알고 있어, `inter` 가 2초라면 2006 ms 와 맞는다. `lb_check_inter` 값 확인과 문서 재확인이 필요하다(미확인).
+- **DOWN 로그의 `check duration: 2006ms`**: 헬스체크의 연결 대기 시간이 `min(timeout connect 3s, inter 2s)` = 2초라고 알고 있어 `inter 2s` 와 맞는다. HAProxy 문서로 이 규칙을 다시 확인하지는 않았다(미확인).
 
 ## 아직 설명이 안 된 것
-- 감지 지연 약 9~12초(시나리오 2, 추정): 검사가 타임아웃(약 2초)까지 걸리는 데다 다음 검사까지 간격이 더해졌다고 가정하면 `fall 3` 일 때 10~12초가 나온다. 다음 검사 시점이 이전 검사 시작 기준인지 종료 기준인지는 확인하지 않았다.
-- 감지 지연 약 3~4초(시나리오 1, 추정): 이론값 4~6초보다 1초쯤 짧다. 중지 시각을 기록하지 못했고 구간 표로 역산한 값이라 오차 범위로 본다.
-- HAProxy 버전(`haproxy -v`)
+- 감지 지연 약 9~12초(시나리오 2, 추정): 검사 하나가 타임아웃 2초까지 걸리고 다음 검사가 종료 2초 뒤에 시작한다고 가정하면 `fall 3` 에서 10~12초(시작 위상 0~2초 포함)가 나와 추정과 맞는다. 다음 검사 시점이 이전 검사 종료 기준인지 시작 기준인지는 확인하지 않았다(시작 기준이면 6~8초).
+- 감지 지연 약 3~4초(시나리오 1, 추정): 연결 거부는 즉시 끝나므로 위 가정으로 이론값 4~6초(위상 0~2초 + 간격 2초 × 2)이고, 추정은 1초쯤 짧다. 중지 시각을 기록하지 못했고 구간 표로 역산한 값이라 오차 범위로 본다.
+- 두 감지 지연 모두 `date`/UTM 조작 시각을 같이 기록했다면 추정이 아닌 측정값이 됐을 것이다.
