@@ -86,3 +86,27 @@
 - 복구: UP 로그(15:48:52)는 프로브가 끝난 뒤였다(60초 구간 내 lab01 응답 0). 재개 후 복귀 과정은 프로브로 관측하지 못했다.
 - 프로브가 순차 요청이라 동시 접속자가 있을 때 몇 명이 3초 지연을 겪는지는 이 결과로 알 수 없다. DOWN 판정 전 lab01 로 배정된 요청은 모두 3초를 기다렸을 것이다.
 - 적용된 HAProxy 타임아웃과 헬스체크 값은 `templates/haproxy.cfg.j2` 로 확인 필요
+
+---
+
+# 적용된 HAProxy 설정 확인 (templates/haproxy.cfg.j2, 2026-11-12)
+
+```
+option redispatch
+retries 3
+timeout connect 3s
+timeout check 3s
+default-server inter {{ lb_check_inter }} fall {{ lb_fall }} rise {{ lb_rise }}
+balance {{ lb_balance }}
+```
+(`timeout client/server 30s`, `http-request 10s`, `http-keep-alive 10s` 도 설정됨. `lb_*` 변수의 실제 값은 `inventory/group_vars/loadbalancers.yml` 에서 확인 필요)
+
+## 설정으로 설명되는 것
+- **시나리오 2의 3.01초**: `timeout connect 3s` 와 일치한다. 응답 없는 lab01 로 연결을 시도하다 3초에 타임아웃이 나고, `retries 3` 와 `option redispatch` 로 재시도가 lab02 로 가서 곧바로 성공한 모양이다.
+- **시나리오 1의 실패 0건**: 연결 거부는 즉시 돌아오므로 같은 재시도 경로로 lab02 에 갔다. 응답이 지연 없이(최대 39 ms) 끝난 것과 맞는다.
+- **DOWN 로그의 `check duration: 2006ms`**: HAProxy 문서 기준으로 헬스체크의 연결 대기 시간은 `min(timeout connect, inter)` 로 알고 있어, `inter` 가 2초라면 2006 ms 와 맞는다. `lb_check_inter` 값 확인과 문서 재확인이 필요하다(미확인).
+
+## 아직 설명이 안 된 것
+- 감지 지연 약 9~12초(시나리오 2, 추정): 검사가 타임아웃(약 2초)까지 걸리는 데다 다음 검사까지 간격이 더해졌다고 가정하면 `fall 3` 일 때 10~12초가 나온다. 다음 검사 시점이 이전 검사 시작 기준인지 종료 기준인지는 확인하지 않았다.
+- 감지 지연 약 3~4초(시나리오 1, 추정): 이론값 4~6초보다 1초쯤 짧다. 중지 시각을 기록하지 못했고 구간 표로 역산한 값이라 오차 범위로 본다.
+- HAProxy 버전(`haproxy -v`)
