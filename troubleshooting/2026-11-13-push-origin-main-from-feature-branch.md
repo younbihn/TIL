@@ -28,3 +28,9 @@ git switch main && git pull        # 병합 뒤 로컬 main 갱신
 - 결과: `! [rejected] main -> main (fetch first)`. 이번에는 "보낼 것이 없음"이 아니라 거절이었다. 원격 `main` 에 로컬 `main` 에 없는 커밋이 있어 로컬 `main` 이 뒤처진 상태라는 뜻이다(어떤 커밋인지는 확인하지 않음, 미확인). 어느 쪽이든 작업 커밋이 있는 곳은 `feat/lb01` 이다.
 - 대응: `git push -u origin feat/lb01` 로 브랜치를 올리고 PR 로 병합한다(위 해결 절차). 원격 `main` 의 새 커밋은 `git fetch origin` 후 `git log --oneline HEAD..origin/main` 으로 확인하고, 있으면 `feat/lb01` 을 그 위로 옮길지(`git rebase origin/main`) PR 화면의 충돌 여부를 보고 정한다.
 - 교훈: 학습 자료의 `git push origin main` 줄은 보호 규칙을 만들기 전 흐름이다. 자료의 커밋 명령을 그대로 붙이지 않고 push 줄만 `git push -u origin 현재브랜치` 로 바꿔 쓴다.
+
+## 재발 세 번째 (2026-11-14 15:19)
+- 상황: `docs/readme-lb-l4` 브랜치에서 `selinux-web-content.yml` 을 커밋(`9cd6662`, 1개 파일, 41줄 추가)한 뒤 학습 자료의 마지막 줄 `git push origin main` 을 또 실행했다.
+- 결과: `Everything up-to-date`. 오류가 없어서 푸시가 된 것처럼 보이지만 로컬 `main` 에는 새 커밋이 없어 아무것도 올라가지 않았고, 커밋 `9cd6662` 는 로컬 브랜치에만 있다. 11/13(보낼 것 없음 계열), 11/14 14:31(거절), 이번(보낼 것 없음)으로 세 번째다.
+- 대응: `git push -u origin HEAD`(현재 브랜치를 그 이름으로 올림). 올린 뒤 `git ls-remote --heads origin docs/readme-lb-l4` 로 원격에 생겼는지 확인한다. 이 방법은 git 설정을 바꾸지 않는다.
+- 교훈: "Everything up-to-date" 는 성공이 아니라 "내가 지정한 브랜치에는 보낼 것이 없다"는 뜻이다. 커밋 직후 `git status -sb` 에서 `ahead N` 이 사라졌는지 본다. 이번에도 같은 줄(자료의 push 줄)에서 발생했으므로 자료의 커밋과 push 블록은 한꺼번에 붙여 넣지 않는다.

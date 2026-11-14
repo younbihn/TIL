@@ -29,3 +29,6 @@ yamllint -s . ; ansible-lint
 - 이 변경은 PR 로 병합됐고 `main` 은 필수 상태 검사 `플레이북 검증`(CI)을 요구하므로 CI 에서는 같은 검사가 돌았을 것이다. Actions 결과 화면은 직접 확인하지 않았다(미확인).
 - 확인 명령: `which 명령`, `echo $?`(직전 명령의 종료 코드), `firewall-cmd --list-ports`
 - 한꺼번에 붙여 넣는 명령 묶음에서는 한 줄의 실패가 다음 줄을 막지 않으므로, 각 줄의 결과(특히 `sudo` 가 들어간 줄)를 따로 확인한다.
+
+## 재발 (2026-11-14 15:19)
+`yamllint -s . && ansible-lint` 가 같은 이유(`zsh: command not found: yamllint`)로 다시 멈췄다. 이번에는 `selinux-web-content.yml` 커밋 직전이었고 `--syntax-check` 만 통과했다. `&&` 로 이어 둔 `git add`, `git commit` 은 별도 줄이라 그대로 실행되어 커밋 `9cd6662` 가 만들어졌다. 로컬 린트는 아직 한 번도 실행되지 않았다. 도구를 설치하기 전에는 CI(PR)가 첫 린트 실행이 된다.
