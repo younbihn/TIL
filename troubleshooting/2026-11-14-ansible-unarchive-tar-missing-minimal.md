@@ -36,3 +36,13 @@ RECAP: ok=3 changed=2 failed=1, 4초
 - 같은 계열: 대상 서버에 모듈이 쓰는 도구와 라이브러리가 있어야 한다. 11/11 `python3-libselinux` 누락, 11/14 SELinux 플레이북의 `policycoreutils-python-utils` 설치 태스크.
 - 확인 명령: `ssh lab02 'which tar gzip'`, `rpm -q tar gzip`
 - 모듈이 어떤 도구를 쓰는지 알려면 모듈 문서의 Requirements 를 본다(`ansible-doc ansible.builtin.unarchive`, 이번에 실행하지 않음).
+
+## 전체 5대 `--check --diff` 결과 (15:29:37, `-K`, `--limit` 없음)
+- lab02: ok=8 changed=0 skipped=2 → 변경할 것이 없다(드리프트 없음). 건너뛴 것은 `압축 풀기`(`creates` 경로가 이미 있음)와 `메트릭이 나오는지 확인`(check 모드에서 건너뜀)
+- lab01, lb01, db01, app01 네 대: 계정 생성, 도구 설치, 압축 파일 내려받기가 모두 changed(체크 모드에서는 "하게 될 변경"). 그리고 `압축 풀기` 에서 `Source '/tmp/node_exporter-1.9.1.linux-arm64.tar.gz' does not exist` 로 실패했고, 실패한 서버는 이후 태스크에서 빠져 `ok=4 changed=3 failed=1` 로 끝났다
+- 해석:
+  - 위 실패는 플레이북 오류가 아니라 check 모드의 한계다. `get_url` 이 check 모드에서는 내려받지 않아 파일이 없고, 뒤의 `unarchive`(`remote_src: yes`)가 파일을 못 찾는다. 이전에 "새 서버에서는 `--check` 가 중간에 실패할 가능성이 크다"고 예상했던 것과 같은 결과다
+  - 도구 설치 태스크가 네 대에서 changed 로 나온 것은 `tar` 나 `gzip` 중 적어도 하나가 없어 설치하게 된다는 뜻이다(어느 쪽이 빠졌는지는 확인하지 않음). 앞서 "다른 서버도 같은지 미확인"이던 것이 check 모드 예측으로는 같은 것으로 보인다. 실제 설치 후에야 확정된다
+  - `압축 풀기` 뒤의 태스크(실행 파일 배치, 유닛, 방화벽, 서비스)는 이 네 대에서 check 모드로 확인하지 못했다. 실제 적용으로만 확인된다
+  - lab02 에서 템플릿과 방화벽 태스크가 오류 없이 지나갔으므로 `node_exporter_version`, `node_exporter_port`, `monitoring_source`, 유닛 템플릿은 정의되어 있다고 볼 수 있다(값 자체는 확인하지 못함)
+- 소요 13초(lab02 와 네 대 동시, forks 기본값 미확인), 가장 긴 태스크는 도구 설치 4.13초(저장소 메타데이터 확인으로 보이나 미확인)
