@@ -10,6 +10,8 @@ rm: cannot remove '/var/tmp/d1.img': 명령을 허용하지 않음   (d2, d3, d4
 ## 원인 (추정, 확인 못 함)
 "명령을 허용하지 않음"은 EPERM(Operation not permitted)의 한국어 메시지다. 이미지 파일이 `sudo` 로 만들어져 root 소유였고, `/var/tmp` 는 sticky 비트가 있는 디렉터리라 파일 소유자가 아닌 일반 사용자는 지울 수 없었던 것으로 짐작한다. 파일이 이미 지워져 소유자, `ls -ld /var/tmp`, `lsattr` 는 확인하지 못했다(미확인). 파일 속성 `chattr +i` 도 같은 증상을 내므로 그 가능성도 배제하지 못한다.
 
+정황 근거(같은 날 15:17 에 받은 실습 기록): 지워지지 않은 `d1.img` ~ `d4.img` 는 `sudo truncate -s 256M` 으로 만들었고, 같은 세션의 다른 실습 이미지 `e.img` 는 `sudo` 없이 `truncate` 로 만들어 `rm -f /var/tmp/e.img` 가 오류 없이 지나갔다(삭제 후 `ls` 로 확인하지는 않음). 만든 사용자에 따라 삭제 가능 여부가 갈렸다는 점이 소유자 가설과 맞는다. 소유자 자체는 확인하지 못했다.
+
 ## 해결
 `sudo rm -f /var/tmp/d?.img /var/tmp/before.sha`. 다음에는 확인 명령을 먼저 쓴다.
 ```
