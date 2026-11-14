@@ -22,3 +22,9 @@ git switch main && git pull        # 병합 뒤 로컬 main 갱신
 - 확인 명령: `git branch --show-current`, `git log --oneline -3` (HEAD 가 가리키는 브랜치와 `origin/main` 위치), `git branch -vv`, `git ls-remote --heads origin` (원격에 있는 브랜치)
 - 같은 규칙에서 막힌 사례: `troubleshooting/2026-11-11-push-rejected-required-status-check.md`
 - `git push origin <브랜치>` 는 현재 브랜치와 상관없이 지정한 로컬 브랜치를 보낸다. 현재 브랜치를 보내려면 `git push -u origin HEAD` 처럼 쓴다.
+
+## 재발 (2026-11-14 14:31)
+- 상황: `feat/lb01` 브랜치에서 L4 실험 변경을 커밋(`a1092f5`, 3개 파일, 23줄 추가)한 뒤 학습 자료의 마지막 줄 `git push origin main` 을 다시 실행했다.
+- 결과: `! [rejected] main -> main (fetch first)`. 이번에는 "보낼 것이 없음"이 아니라 거절이었다. 원격 `main` 에 로컬 `main` 에 없는 커밋이 있어 로컬 `main` 이 뒤처진 상태라는 뜻이다(어떤 커밋인지는 확인하지 않음, 미확인). 어느 쪽이든 작업 커밋이 있는 곳은 `feat/lb01` 이다.
+- 대응: `git push -u origin feat/lb01` 로 브랜치를 올리고 PR 로 병합한다(위 해결 절차). 원격 `main` 의 새 커밋은 `git fetch origin` 후 `git log --oneline HEAD..origin/main` 으로 확인하고, 있으면 `feat/lb01` 을 그 위로 옮길지(`git rebase origin/main`) PR 화면의 충돌 여부를 보고 정한다.
+- 교훈: 학습 자료의 `git push origin main` 줄은 보호 규칙을 만들기 전 흐름이다. 자료의 커밋 명령을 그대로 붙이지 않고 push 줄만 `git push -u origin 현재브랜치` 로 바꿔 쓴다.
